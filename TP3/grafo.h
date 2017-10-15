@@ -89,6 +89,20 @@ template <class N>
 std::ostream & operator<<(std::ostream &out, const ArestaRepetida<N> &ar)
 { out << "Aresta repetida: " << ar.inicio << " , " << ar.fim; return out; }
 
+template <class N>
+class ArestaInexistente {
+public:
+	N inicio, fim;
+	ArestaInexistente(N inicio, N fim) {
+		this->inicio = inicio;
+		this->fim = fim;
+	}
+};
+
+template <class N>
+std::ostream & operator<<(std::ostream &out, const ArestaInexistente<N> &ai)
+{ out << "Aresta inexistente: " << ai.inicio << " , " << ai.fim; return out; }
+
 template <class N, class A>
 Grafo<N,A>::Grafo() {}
 
@@ -140,17 +154,70 @@ Grafo<N,A> & Grafo<N,A>::inserirAresta(const N &inicio, const N &fim, const A &v
 				}
 			}
 			for(unsigned int j = 0; j < this->nos.size();j++){
-				if(this->nos.at(i)->info == fim){
+				if(this->nos.at(j)->info == fim){
 					a = new Aresta<N,A>(this->nos[j],val);
 					this->nos.at(i)->arestas.push_back(*a);
 					return *this;
 				}
 			}
+			throw NoInexistente<N>(fim);
 		}
-		throw NoInexistente<N>(fim);
 	}
 	throw NoInexistente<N>(inicio);
-	return *this;
 }
+
+template <class N, class A>
+A & Grafo<N,A>::valorAresta(const N &inicio, const N &fim){
+	for(unsigned int i = 0; i < this->nos.size();i++){
+		if(this->nos[i]->info == inicio){
+			for(unsigned int j = 0;j < this->nos[i]->arestas.size();j++){
+				if(this->nos[i]->arestas[j].destino->info == fim){
+					return this->nos[i]->arestas[j].valor;
+				}
+			}
+			cout << "Aresta inexistente: " << inicio << " , " << fim << endl;
+			throw ArestaInexistente<N>(inicio,fim);
+		}
+	}
+	cout << "No Inexistente: " << inicio << endl;
+	throw NoInexistente<N>(inicio);
+}
+
+
+template <class N, class A>
+Grafo<N,A> & Grafo<N,A>::eliminarAresta(const N &inicio, const N &fim){
+	for(auto &no: this->nos){
+		if(no->info == inicio){
+			for(unsigned int i = 0; i < no->arestas.size();i++){
+				if(no->arestas[i].destino->info == fim){
+					no->arestas.erase(no->arestas.begin() + i);
+					return *this;
+				}
+			}
+			throw ArestaInexistente<N>(inicio,fim);
+		}
+	}
+	throw NoInexistente<N>(inicio);
+}
+
+
+template <class N, class A>
+void Grafo<N,A>::imprimir(std::ostream &os) const {
+	for(auto &no: this->nos){
+		os << "( " << no->info;
+		for(auto &aresta: no->arestas){
+			os << "[ " << aresta.destino->info << " " << aresta.valor << "] ";
+		}
+
+		os << ") ";
+	}
+}
+
+template <class N, class A>
+ostream & operator<<(ostream &os, const Grafo<N,A> &g){
+	g.imprimir(os);
+	return os;
+}
+
 
 
